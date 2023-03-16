@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>您好，这里是chatbot</title>
+  <style>
+      body {
+      background-color: #ddebff;
+      line-height: 1.6;
+    }
+    #container {
+      max-width: 800px;
+      margin: auto;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      border-radius: 5px;
+      text-align: center;
+    }
+    h1{
+      color:rgb(66, 157, 255)
+    }
+    #header {
+      display: flex;
+      justify-content: center;
+      align-items: center;  
+      margin-bottom: 20px;
+    }
+    #conversation {
+      height: 200px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding: 10px;
+      background-color: #f7f7f7;
+      border-radius: 5px;
+    }
+    #input-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    input[type="text"], textarea {
+      width: 80%;
+      text-align: left;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-bottom: 2px solid #0077cc;
+      border-radius: 0;
+    }
+    button{
+      text-align: right;
+      background-color: #0077cc;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    p{
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>OpenAI Chatbot</h1>
+    <div id="conversation">
+    </div>
+    <div id="input-container">
+      <input type="text" id="input" placeholder="请输入问题">
+      <button type="button" onclick="getAnswer(); document.getElementById('input').value = '';">发送</button><br>
+    </div>
+    <a href="mailto:2157024587@qq.com" style="float:right;">提交反馈</a>
+  </div>
+  <script>
+
+    const conversation = document.getElementById("conversation");
+    const input = document.getElementById("input");
+    let dialogues = [];
+
+    function renderDialogues() {
+      conversation.innerHTML = "";//清空聊天窗
+      dialogues.forEach(dialogue => {//遍历对话
+        const q = document.createElement("p");
+        const a = document.createElement("p");
+        q.innerText = "Q: " + dialogue.question;
+        a.innerText = "A: " + dialogue.answer;//创建包含问题的答案的p元素
+        conversation.appendChild(q);
+        conversation.appendChild(a);//添加到聊天窗
+      });  
+      conversation.scrollTop = conversation.scrollHeight; //滚动到最新的聊天
+    }
+
+    function getAnswer() {
+        const input = document.getElementById("input").value;//查找元素
+        const conversation = document.getElementById("conversation");
+        const question = document.createElement("p");
+        question.innerText = "Q: " + input;
+        conversation.appendChild(question);
+        //发送post请求到后端并将问题作为json数据发送
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://localhost:5000/get_response');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            const answer = document.createElement("p");
+            answer.innerText = "A: " + xhr.responseText;
+            conversation.appendChild(answer);
+            const dialogue = {question: input, answer: xhr.responseText};
+    dialogues.push(dialogue);
+    localStorage.setItem('dialogues', JSON.stringify(dialogues));//本地存储对话
+    renderDialogues();
+  };
+      xhr.send(JSON.stringify({input: input}));//将问题作为json数据发送到后端
+    }
+    window.onload = function() {
+  // 从localStorage中获取聊天记录
+  const storedDialogues = JSON.parse(localStorage.getItem('dialogues')) || [];
+  // 获取最近的六条聊天记录
+  dialogues = storedDialogues.slice(-6);
+  // 渲染聊天记录
+  renderDialogues();
+};
+  </script>
+</body>
+</html>
